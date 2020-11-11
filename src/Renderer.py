@@ -1,9 +1,7 @@
 import datetime as dt
 
-import torch
-import matplotlib.pyplot as plt
 import cv2
-import numpy as np
+import torch
 
 
 class Renderer:
