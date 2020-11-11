@@ -62,10 +62,6 @@ class Renderer:
         cv2.imshow('ss', res)
         cv2.waitKey(0)
 
-    def save(self, name):
-        res = self.outImage.cpu().numpy()
-        cv2.imwrite(name, res)
-
     def render(self):
 
         def renderOne(coord):
@@ -78,21 +74,25 @@ class Renderer:
                     self.mindist = t
                 # print(t)
                 self.outImage[coord[0].int().item()][coord[1].int().item()] = torch.Tensor(
-                    [850 - 410 * t, 850 - 410* t, 850 - 410 * t]).to(self.device)
+                    [255. - 24 * t, 255. - 24 * t, 255. - 24 * t])
 
         coords = torch.Tensor([(i, j) for i in range(self.screen[0]) for j in range(self.screen[1])]).to(self.device)
         for coord in coords:
             # print(coord)
             renderOne(coord)
             # print(self.outImage[coord[0].int().item()][coord[1].int().item()])
+    
+    def saveImage(self,path):
+        res = self.outImage.cpu().numpy()
+        cv2.imwrite(path,res)
 
 
 if __name__ == "__main__":
     campos = torch.Tensor([0, 1, 2])
     at = torch.Tensor([0, 0, 0])
-    width = 1280
-    height = 1280
-    tol = 0.001
+    width = 128
+    height = 128
+    tol = 0.1
     renderer = Renderer(None, campos, at, width, height, tol, True)
     s = dt.datetime.now()
     renderer.render()
