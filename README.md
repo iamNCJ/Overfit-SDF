@@ -36,7 +36,7 @@ python3 network/NeuralImplicit.py --input input.sdf
 python3 network/NeuralImplicit.py --render input.pth
 ```
 
-## Generating SDF from Mesh
+## Data Preprocessing - Generating SDF from Mesh
 If you have a mesh file xxx.obj, you need to generate SDF from the mesh file to run our SDFDiff code.
 
 First, you need to git clone the following tools.
