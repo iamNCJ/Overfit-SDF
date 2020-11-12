@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+import argparse
 import os
 import time
 
@@ -51,7 +53,7 @@ class NeuralImplicit:
                 epoch_loss += loss.item()
 
                 bar.set_description("epoch:{} ".format(epoch))
-                if verbose and count % 1000 == 0:
+                if verbose and count % self.log_iterations == 0:
                     msg = '{}\t[{}/{}]\tepoch_loss: {:.6f}\tloss: {:.6f}'.format(
                         time.ctime(),
                         count,
@@ -86,15 +88,50 @@ class NeuralImplicit:
 
 
 if __name__ == '__main__':
-    sdf = NeuralImplicit()
-    sdf.encode('wave.sdf')
-    sdf.load('_apple_entity_wave.pth')
-    campos = torch.Tensor([0, 0, 2])
-    at = torch.Tensor([0, 0, 0])
-    width = 128
-    height = 128
-    tol = 0.001
-    renderer = Renderer(sdf.model, campos, at, width, height, tol)
-    renderer.render()
-    # renderer.showImage()
-    renderer.save('apple.png')
+    arg_parser = argparse.ArgumentParser(
+        description="Overfit an implicit neural network to represent 3D shape, type --help to see available arguments"
+    )
+    arg_parser.add_argument(
+        "--input",
+        dest="input_sdf",
+        required=False,
+        help="The SDF file to overfit",
+    )
+    arg_parser.add_argument(
+        "--render",
+        dest="render_model",
+        required=False,
+        help="The pth model file to load and render"
+    )
+    arg_parser.add_argument(
+        "--headless",
+        dest="headless",
+        action="store_true",
+        default=False,
+        required=False,
+        help="Render in headless mode"
+    )
+
+    args = arg_parser.parse_args()
+    print(args)
+
+    # overfit encode
+    if args.input_sdf:
+        sdf = NeuralImplicit()
+        sdf.encode(args.input_sdf)
+
+    # ray marching render
+    if args.render_model:
+        sdf = NeuralImplicit()
+        sdf.load(args.render_model)
+        campos = torch.Tensor([0, 0, 2])
+        at = torch.Tensor([0, 0, 0])
+        width = 128
+        height = 128
+        tol = 0.001
+        renderer = Renderer(sdf.model, campos, at, width, height, tol)
+        renderer.render()
+        if not args.headless:
+            renderer.showImage()
+        img_file = "./" + os.path.splitext(os.path.basename(args.render_model))[0] + ".png"
+        renderer.save(img_file)
