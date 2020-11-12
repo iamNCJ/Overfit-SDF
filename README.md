@@ -43,14 +43,14 @@ First, you need to git clone the following tools.
 
 ```bash
 # a tool to generate watertight meshes from arbitrary meshes
-git clone https://github.com/hjwdzh/Manifold.git
+git clone https://github.com/hjwdzh/ManifoldPlus.git
 
 # A tool to generate SDF from watertight meshes
 git clone https://github.com/christopherbatty/SDFGen.git
 Then you can run the following to get SDF from your mesh file xxx.obj.
 
 # Generate watertight meshes from arbitrary meshes
-./Manifold/build/manifold ./obj_files/xxx.obj ./watertight_meshes_and_sdfs/xxx.obj
+./ManifoldPlus/build/manifold --input ./obj_files/xxx.obj --output ./watertight_meshes_and_sdfs/xxx.obj
 
 # Generate SDF from watertight meshes
 ./SDFGen/build/bin/SDFGen ./watertight_meshes_and_sdfs/xxx.obj 0.002 0 
