@@ -76,9 +76,9 @@ class NeuralImplicit:
             assert (H > 0)
 
             net = [nn.Linear(3, H), nn.ReLU(True)]
-            for i in range(N - 1):
+            for i in range(N):
                 net += [nn.Linear(H, H), nn.ReLU(True)]
-            net += [nn.Linear(H, 1), nn.ReLU(True)]
+            net += [nn.Linear(H, 1)]
             self.model = nn.Sequential(*net)
 
         def forward(self, x):
