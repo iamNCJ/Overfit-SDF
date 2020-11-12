@@ -75,10 +75,10 @@ class NeuralImplicit:
             assert (N > 0)
             assert (H > 0)
 
-            net = [nn.Linear(3, H), nn.LeakyReLU(0.1)]
-            for i in range(0, N):
-                net += [nn.Linear(H, H), nn.LeakyReLU(0.1)]
-            net += [nn.Linear(H, 1), nn.LeakyReLU(0.1)]
+            net = [nn.Linear(3, H), nn.ReLU(True)]
+            for i in range(N - 1):
+                net += [nn.Linear(H, H), nn.ReLU(True)]
+            net += [nn.Linear(H, 1), nn.ReLU(True)]
             self.model = nn.Sequential(*net)
 
         def forward(self, x):
@@ -96,6 +96,15 @@ if __name__ == '__main__':
         dest="input_sdf",
         required=False,
         help="The SDF file to overfit",
+    )
+    arg_parser.add_argument(
+        "--verbose",
+        "-v",
+        dest="verbose",
+        action="store_true",
+        default=True,
+        required=False,
+        help="Train in verbose mode"
     )
     arg_parser.add_argument(
         "--render",
@@ -118,7 +127,7 @@ if __name__ == '__main__':
     # overfit encode
     if args.input_sdf:
         sdf = NeuralImplicit()
-        sdf.encode(args.input_sdf)
+        sdf.encode(args.input_sdf, verbose=args.verbose)
 
     # ray marching render
     if args.render_model:
