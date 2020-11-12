@@ -9,15 +9,14 @@ from Renderer import Renderer
 from SdfDataset import SdfDataset
 from torch import nn
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 
 
 class NeuralImplicit:
     def __init__(self, N=16, H=64):
         self.model = self.OverFitSDF(N, H)
-        self.epochs = 100
+        self.epochs = 1000 if torch.cuda.is_available() else 100
         self.lr = 1e-4
-        self.batch_size = 128
+        self.batch_size = 64
         self.log_iterations = 1000
 
     def save(self, name):
@@ -27,7 +26,7 @@ class NeuralImplicit:
         print('loading model...')
         self.model.load_state_dict(torch.load(name))
 
-    def encode(self, mesh_file, early_stop=None, verbose=True):
+    def encode(self, mesh_file, verbose=True):
         dataset = SdfDataset(mesh_file)
         dataloader = DataLoader(dataset=dataset, batch_size=self.batch_size, shuffle=True)
 
@@ -41,8 +40,7 @@ class NeuralImplicit:
             epoch_loss = 0
             self.model.train()
             count = 0
-            bar = tqdm(dataloader)
-            for batch_idx, (x_train, y_train) in enumerate(bar):
+            for batch_idx, (x_train, y_train) in enumerate(dataloader):
                 x_train, y_train = x_train.to(device), y_train.to(device)
                 count += self.batch_size
                 optimizer.zero_grad()
@@ -52,18 +50,16 @@ class NeuralImplicit:
                 optimizer.step()
                 epoch_loss += loss.item()
 
-                bar.set_description("epoch:{} ".format(epoch))
                 if verbose and count % self.log_iterations == 0:
-                    msg = '{}\t[{}/{}]\tepoch_loss: {:.6f}\tloss: {:.6f}'.format(
+                    msg = '{}\tEpoch: {}:\t[{}/{}]\tepoch_loss: {:.6f}\tloss: {:.6f}'.format(
                         time.ctime(),
+                        epoch + 1,
                         count,
                         len(dataset),
                         epoch_loss / (batch_idx + 1),
                         loss)
                     print(msg)
 
-            if early_stop and epoch_loss < early_stop:
-                break
             print('Saving model...')
             model_file = "./" + os.path.splitext(os.path.basename(mesh_file))[0] + ".pth"
             self.save(model_file)
@@ -76,9 +72,9 @@ class NeuralImplicit:
             assert (H > 0)
 
             net = [nn.Linear(3, H), nn.ReLU(True)]
-            for i in range(N - 1):
+            for i in range(0, N):
                 net += [nn.Linear(H, H), nn.ReLU(True)]
-            net += [nn.Linear(H, 1), nn.ReLU(True)]
+            net += [nn.Linear(H, 1)]	# there is no ReLU, no ReLU!
             self.model = nn.Sequential(*net)
 
         def forward(self, x):
@@ -126,6 +122,7 @@ if __name__ == '__main__':
 
     # overfit encode
     if args.input_sdf:
+        print('Using GPU' if torch.cuda.is_available() else 'Using CPU')
         sdf = NeuralImplicit()
         sdf.encode(args.input_sdf, verbose=args.verbose)
 
@@ -135,8 +132,8 @@ if __name__ == '__main__':
         sdf.load(args.render_model)
         campos = torch.Tensor([0, 0, 2])
         at = torch.Tensor([0, 0, 0])
-        width = 128
-        height = 128
+        width = 64
+        height = 64
         tol = 0.001
         renderer = Renderer(sdf.model, campos, at, width, height, tol)
         renderer.render()

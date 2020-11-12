@@ -75,7 +75,7 @@ class Renderer:
                 if t < self.min_dist:
                     self.min_dist = t
                 self.out_image[coord[0].int().item()][coord[1].int().item()] = torch.Tensor(
-                    [850 - 410 * t, 850 - 410 * t, 850 - 410 * t]).to(self.device)
+                    [320 - 64 * t, 320 - 64 * t, 320 - 64 * t]).to(self.device)
 
         coords = torch.Tensor([(i, j) for i in range(self.screen[0]) for j in range(self.screen[1])]).to(self.device)
         for coord in coords:
