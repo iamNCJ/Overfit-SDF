@@ -122,7 +122,6 @@ if __name__ == '__main__':
     )
 
     args = arg_parser.parse_args()
-    print(args)
 
     # overfit encode
     if args.input_sdf:
